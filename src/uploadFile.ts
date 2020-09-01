@@ -38,7 +38,7 @@ uploadFileHandler.post(
 
         res.json({
             ok: true,
-            url: `https://${req.header('host')}/${filePath}`,
+            url: `https://files-remtori.netlify.app/${filePath}`,
         });
 
         try {
