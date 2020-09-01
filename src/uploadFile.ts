@@ -39,16 +39,21 @@ uploadFileHandler.post(
         try {
             const movePath = `./tmp/files/publish/${filePath}`;
 
-            if (!(await fs.pathExists(path.dirname(movePath)))) {
+            if (!(await fs.pathExists('./tmp/files'))) {
                 await exec(
                     `git clone https://github.com/remtori/files.git ./tmp/files --depth=1`
                 );
             }
 
+            await fs.ensureDir(path.dirname(movePath));
+
             await file.mv(movePath);
 
             await exec(`sh ./src/push.sh`, {
-                env: { COMMIT_MSG: `[api] Uploaded ${filePath}` },
+                env: Object.assign(
+                    { COMMIT_MSG: `[api] Uploaded ${filePath}` },
+                    process.env
+                ),
             });
 
             res.json({
