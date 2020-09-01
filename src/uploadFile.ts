@@ -36,6 +36,11 @@ uploadFileHandler.post(
         const id = generateID(file.md5);
         const filePath = `${category}/${id}${ext}`;
 
+        res.json({
+            ok: true,
+            url: `https://${req.header('host')}/${filePath}`,
+        });
+
         try {
             const movePath = `./tmp/files/publish/${filePath}`;
 
@@ -55,15 +60,9 @@ uploadFileHandler.post(
                     process.env
                 ),
             });
-
-            res.json({
-                ok: true,
-                url: `https://${req.header('host')}/${filePath}`,
-            });
         } catch (err) {
             console.log('Error while uploading: ' + JSON.stringify(file));
             console.log(err);
-            return res.json({ ok: false });
         }
     }
 );
