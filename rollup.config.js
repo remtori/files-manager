@@ -1,5 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
-import run from '@rollup/plugin-run';
+import builtinModules from 'builtin-modules';
+import pkg from './package.json';
 
 const dev = process.env.ROLLUP_WATCH === 'true';
 
@@ -12,5 +13,6 @@ export default {
 	plugins: [
 		typescript(),
 		dev && run(),
-	]
+	],
+	external: Object.keys(pkg.dependencies).concat(builtinModules)
 }
