@@ -41,8 +41,6 @@ app.get('/', (req, res) => {
     `);
 });
 
-// app.listen(PORT, () => {
-//     console.log('Server started! Listening at port: ' + PORT);
-// });
-
-for (var i = 0; i < 10; i++) console.log(generateID());
+app.listen(PORT, () => {
+    console.log('Server started! Listening at port: ' + PORT);
+});

@@ -2,5 +2,6 @@
     "owner": "remtori",
     "repo": "files",
     "publishPath": "publish",
+    "netlifySite": "files-remtori",
     "domain": "https://files-remtori.netlify.app"
 }

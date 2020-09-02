@@ -1,61 +1,94 @@
 import { Router, Request, Response } from 'express';
-import fileUpload, { UploadedFile } from 'express-fileupload';
 import child_process, { ExecOptions } from 'child_process';
+import fetch, { RequestInit } from 'node-fetch';
 import fs from 'fs-extra';
 import path from 'path';
 
+import { uploadFileMiddleware } from './uploadFile/uploadFileMiddleware';
 import cfg from '../config.json';
-
-import { generateID } from './guid';
-import { fileInfoFromContentHead } from './fileDescription';
 
 const GIT_PUSH_TIMEOUT = 5 * 60 * 1000;
 const REPO_PATH = './tmp/files';
 
 export const uploadFileHandler = Router();
 
+let firstTime = true;
+
+interface FileIndex {
+    files: {
+        [path: string]: string /* sha1 hash */;
+    };
+}
+
+let indexJson: FileIndex = { files: {} };
+
+const indexPath = path.join(REPO_PATH, 'index.json');
+
 uploadFileHandler.post(
     '/',
-    fileUpload({
-        useTempFiles: true,
-        tempFileDir: './tmp',
+    async (req: Request, res: Response, next: () => void) => {
+        if (!firstTime) return next();
+        firstTime = false;
+
+        if (await fs.pathExists(REPO_PATH)) {
+            await exec(`git pull`, { cwd: REPO_PATH });
+        } else {
+            await exec(
+                `git clone https://github.com/${cfg.owner}/${cfg.repo}.git ${REPO_PATH} --depth=1`
+            );
+        }
+
+        await fs.ensureFile(indexPath);
+        try {
+            indexJson = (await readJson(indexPath)) as FileIndex;
+        } catch (e) {}
+
+        next();
+    },
+    uploadFileMiddleware({
+        uploadFolder: path.join(REPO_PATH, cfg.publishPath),
     }),
     async (req: Request, res: Response) => {
-        if (!req.files || !req.files.file) return res.json({ ok: false });
+        if (!req.files) return res.json({ ok: false });
 
-        const file = req.files.file as UploadedFile;
+        const file = req.files.file;
         if (!file) return res.json({ ok: false });
 
-        const filePath = await filePathFromUploadedFile(file);
-        res.json({ ok: true, url: `${cfg.domain}/${filePath}` });
+        const publicPath = path.relative(REPO_PATH, file.filePath);
+        res.json({ ok: true, url: `${cfg.domain}/${publicPath}` });
 
         try {
-            const movePath = path.join(REPO_PATH, cfg.publishPath, filePath);
-
             // Upload to github
-            if (!(await fs.pathExists(REPO_PATH))) {
-                await exec(
-                    `git clone https://github.com/${cfg.owner}/${cfg.repo}.git ${REPO_PATH} --depth=1`
-                );
-            }
-
-            await fs.ensureDir(path.dirname(movePath));
-
-            await file.mv(movePath);
-
             await exec(`sh ./src/commit.sh`, {
-                env: { COMMIT_MSG: `[api] Uploaded ${filePath}` },
+                env: { COMMIT_MSG: `[api] Uploaded ${publicPath}` },
             });
 
             queuePush();
 
             // Upload to netlify
+            indexJson.files['/' + publicPath] = file.hash;
+
+            writeJson(indexPath, indexJson);
         } catch (err) {
             console.log('Error while uploading: ' + JSON.stringify(file));
             console.log(err);
         }
     }
 );
+
+function netlifyRequest(endpoint: string, opts: RequestInit) {
+    return fetch(
+        `https://api.netlify.com/api/v1/${endpoint}`,
+        Object.assign(
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
+                },
+            },
+            opts
+        )
+    ).then((r) => r.json());
+}
 
 function exec(cmd: string, options: ExecOptions = {}) {
     return new Promise((resolve, reject) => {
@@ -66,21 +99,6 @@ function exec(cmd: string, options: ExecOptions = {}) {
             resolve(stdout);
         });
     });
-}
-
-async function filePathFromUploadedFile(file: UploadedFile): Promise<string> {
-    const fd = await fs.open(file.tempFilePath, 'r');
-    const buf = Buffer.alloc(12);
-    await fs.read(fd, buf, 0, 12, 0);
-    await fs.close(fd);
-
-    const desc = fileInfoFromContentHead(buf.toString('binary'));
-
-    const category = desc.type;
-    const ext = desc.ext || path.extname(file.name);
-
-    const id = generateID();
-    return `${category}/${id}${ext}`;
 }
 
 let pushTimeoutHandler: NodeJS.Timeout;
@@ -94,3 +112,9 @@ const push = () =>
         `git push https://${process.env.GITHUB_TOKEN}@github.com/${cfg.owner}/${cfg.repo}.git`,
         { cwd: REPO_PATH }
     );
+
+const readJson = (path: string) =>
+    fs.readFile(path, 'utf8').then((text) => JSON.parse(text));
+
+const writeJson = (path: string, obj: any) =>
+    fs.writeFile(path, JSON.stringify(obj));
