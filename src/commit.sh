@@ -6,7 +6,7 @@ git config user.name "Files Manager"
 git config push.default current
 git stash
 git checkout master
+git pull
 git stash pop
 git add .
 git commit -m "${COMMIT_MSG}"
-git push https://${GITHUB_TOKEN}@github.com/remtori/files.git

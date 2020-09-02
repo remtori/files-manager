@@ -3,7 +3,8 @@ import morgan from 'morgan';
 import cors from 'cors';
 
 import { auth } from './auth';
-import { uploadFileHandler } from './uploadFile';
+import { uploadFileHandler } from './uploadFileHandler';
+import { generateID } from './guid';
 
 const PORT = process.env.PORT || 4999;
 const app = express();
@@ -40,6 +41,8 @@ app.get('/', (req, res) => {
     `);
 });
 
-app.listen(PORT, () => {
-    console.log('Server started! Listening at port: ' + PORT);
-});
+// app.listen(PORT, () => {
+//     console.log('Server started! Listening at port: ' + PORT);
+// });
+
+for (var i = 0; i < 10; i++) console.log(generateID());

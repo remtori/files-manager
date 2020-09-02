@@ -1,3 +1,4 @@
+import run from '@rollup/plugin-run';
 import typescript from '@rollup/plugin-typescript';
 import builtinModules from 'builtin-modules';
 import pkg from './package.json';
@@ -14,5 +15,10 @@ export default {
 		typescript(),
 		dev && run(),
 	],
-	external: Object.keys(pkg.dependencies).concat(builtinModules)
+	external: [
+		'../config.json'
+	].concat(
+		Object.keys(pkg.dependencies),
+		builtinModules
+	)
 }
