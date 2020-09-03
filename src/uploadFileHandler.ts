@@ -57,6 +57,8 @@ uploadFileHandler.post(
             .relative(uploadFolder, file.filePath)
             .replace(/\\/g, '/');
 
+        console.log(`Received file: ${file.name}, save as ${publicPath}`);
+
         res.json({
             ok: true,
             url: `https://${cfg.netlifySite}/${publicPath}`,

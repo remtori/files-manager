@@ -53,8 +53,6 @@ export const fileStreamHandler: FileStreamHandler = (
             hash.update(data);
             writeStream.write(data);
             fileSize += data.length;
-
-            console.log(`Uploading ${filename}, bytes: ${fileSize}...`);
         },
         getFilePath: () => filePath || '',
         getFileSize: () => fileSize,
