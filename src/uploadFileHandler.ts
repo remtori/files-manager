@@ -7,7 +7,6 @@ import path from 'path';
 import { uploadFileMiddleware } from './uploadFile/uploadFileMiddleware';
 import cfg from '../config.json';
 
-const GIT_PUSH_TIMEOUT = 5 * 60 * 1000;
 const REPO_PATH = './tmp/files';
 
 export const uploadFileHandler = Router();
@@ -23,6 +22,7 @@ interface FileIndex {
 let indexJson: FileIndex = { files: {} };
 
 const indexPath = path.join(REPO_PATH, 'index.json');
+const uploadFolder = path.join(REPO_PATH, cfg.publishPath);
 
 uploadFileHandler.post(
     '/',
@@ -41,24 +41,32 @@ uploadFileHandler.post(
         await fs.ensureFile(indexPath);
         try {
             indexJson = (await readJson(indexPath)) as FileIndex;
+            indexJson.files = indexJson.files || {};
         } catch (e) {}
 
         next();
     },
-    uploadFileMiddleware({
-        uploadFolder: path.join(REPO_PATH, cfg.publishPath),
-    }),
+    uploadFileMiddleware({ uploadFolder }),
     async (req: Request, res: Response) => {
         if (!req.files) return res.json({ ok: false });
 
         const file = req.files.file;
         if (!file) return res.json({ ok: false });
 
-        const publicPath = path.relative(REPO_PATH, file.filePath);
-        res.json({ ok: true, url: `${cfg.domain}/${publicPath}` });
+        const publicPath = path
+            .relative(uploadFolder, file.filePath)
+            .replace(/\\/g, '/');
+
+        res.json({
+            ok: true,
+            url: `https://${cfg.netlifySite}/${publicPath}`,
+        });
 
         try {
             // Upload to github
+            indexJson.files['/' + publicPath] = file.hash;
+            await writeJson(indexPath, indexJson);
+
             await exec(`sh ./src/commit.sh`, {
                 env: { COMMIT_MSG: `[api] Uploaded ${publicPath}` },
             });
@@ -66,9 +74,39 @@ uploadFileHandler.post(
             queuePush();
 
             // Upload to netlify
-            indexJson.files['/' + publicPath] = file.hash;
+            const netlifyDeployRes = await netlifyRequest(
+                `sites/${cfg.netlifySite}/deploys`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(indexJson),
+                }
+            );
 
-            writeJson(indexPath, indexJson);
+            const promiseQueue = [];
+            for (const sha1 of netlifyDeployRes.required) {
+                if (sha1 === file.hash) {
+                    promiseQueue.push(
+                        uploadFile(netlifyDeployRes.id, publicPath)
+                    );
+
+                    continue;
+                }
+
+                for (const filePath in indexJson.files) {
+                    if (sha1 === indexJson.files[filePath]) {
+                        promiseQueue.push(
+                            uploadFile(netlifyDeployRes.id, filePath)
+                        );
+
+                        break;
+                    }
+                }
+            }
+
+            await Promise.all(promiseQueue);
         } catch (err) {
             console.log('Error while uploading: ' + JSON.stringify(file));
             console.log(err);
@@ -77,17 +115,34 @@ uploadFileHandler.post(
 );
 
 function netlifyRequest(endpoint: string, opts: RequestInit) {
-    return fetch(
-        `https://api.netlify.com/api/v1/${endpoint}`,
-        Object.assign(
-            {
-                headers: {
-                    Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
-                },
-            },
-            opts
-        )
-    ).then((r) => r.json());
+    return fetch(`https://api.netlify.com/api/v1/${endpoint}`, {
+        ...opts,
+        headers: {
+            ...opts.headers,
+            Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
+        },
+    })
+        .then((r) => r.json())
+        .then((res) => {
+            if (res.code && res.code != 200) {
+                console.log(`Netlify error (${res.code})`);
+                throw new Error(res.message);
+            }
+
+            return res;
+        });
+}
+
+function uploadFile(deployId: string, publicPath: string) {
+    if (publicPath[0] === '/') publicPath = publicPath.slice(1);
+
+    return netlifyRequest(`deploys/${deployId}/files/${publicPath}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/octet-stream',
+        },
+        body: fs.createReadStream(path.join(uploadFolder, publicPath)),
+    });
 }
 
 function exec(cmd: string, options: ExecOptions = {}) {
@@ -104,7 +159,7 @@ function exec(cmd: string, options: ExecOptions = {}) {
 let pushTimeoutHandler: NodeJS.Timeout;
 function queuePush() {
     clearTimeout(pushTimeoutHandler);
-    pushTimeoutHandler = setTimeout(push, GIT_PUSH_TIMEOUT);
+    pushTimeoutHandler = setTimeout(push, cfg.gitPushTimeout);
 }
 
 const push = () =>
@@ -117,4 +172,4 @@ const readJson = (path: string) =>
     fs.readFile(path, 'utf8').then((text) => JSON.parse(text));
 
 const writeJson = (path: string, obj: any) =>
-    fs.writeFile(path, JSON.stringify(obj));
+    fs.writeFile(path, JSON.stringify(obj, null, 2));
