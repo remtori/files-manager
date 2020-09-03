@@ -11,10 +11,7 @@ export const auth = () => (req: Request, res: Response, next: () => void) => {
         );
 
         const [username, password] = credentials.split(':');
-        if (
-            hash(username, password) ===
-            `9o1QyvVKnXNG3JjRGoQnDkw9r8MuysSa9zHHn+HiBfhb9SSc6WsZDm2gL3vnxP+Us67lVrZNBGiCyK/TUROZbg==`
-        ) {
+        if (hash(username, password) === process.env.PASSWORD) {
             return next();
         }
     }
@@ -29,5 +26,5 @@ export const auth = () => (req: Request, res: Response, next: () => void) => {
 function hash(username: string, password: string) {
     const h = crypto.createHmac('sha512', password);
     h.update(username);
-    return h.digest().toString('base64');
+    return h.digest().toString('hex');
 }
