@@ -1,6 +1,9 @@
 import run from '@rollup/plugin-run';
 import typescript from '@rollup/plugin-typescript';
 import builtinModules from 'builtin-modules';
+import dotenv from 'dotenv';
+import path from 'path';
+
 import pkg from './package.json';
 
 const dev = process.env.ROLLUP_WATCH === 'true';
@@ -13,7 +16,13 @@ export default {
 	},
 	plugins: [
 		typescript(),
-		dev && run(),
+		dev && run({
+			options: {
+				env: dotenv.config({
+					path: path.join(__dirname, '.env.dev')
+				}).parsed
+			}
+		}),
 	],
 	external: [
 		'../config.json'
