@@ -4,7 +4,10 @@ import fetch, { RequestInit } from 'node-fetch';
 import fs from 'fs-extra';
 import path from 'path';
 
-import { uploadFileMiddleware } from './uploadFile/uploadFileMiddleware';
+import {
+    uploadFileMiddleware,
+    UploadedFile,
+} from './uploadFile/uploadFileMiddleware';
 import cfg from '../config.json';
 
 const REPO_PATH = './tmp/files';
@@ -23,6 +26,10 @@ let indexJson: FileIndex = { files: {} };
 
 const indexPath = path.join(REPO_PATH, 'index.json');
 const uploadFolder = path.join(REPO_PATH, cfg.publishPath);
+
+interface UploadedFileInfo extends UploadedFile {
+    publicPath: string;
+}
 
 uploadFileHandler.post(
     '/',
@@ -50,27 +57,47 @@ uploadFileHandler.post(
     async (req: Request, res: Response) => {
         if (!req.files) return res.json({ ok: false });
 
-        const file = req.files.file;
-        if (!file) return res.json({ ok: false });
+        const uploadedFiles = req.files['files[]'] as UploadedFileInfo[];
+        if (!uploadedFiles) return res.json({ ok: false });
 
-        const publicPath = path
-            .relative(uploadFolder, file.filePath)
-            .replace(/\\/g, '/');
+        for (let i = 0; i < uploadedFiles.length; i++) {
+            const publicPath = path
+                .relative(uploadFolder, uploadedFiles[i].filePath)
+                .replace(/\\/g, '/');
 
-        console.log(`Received file: ${file.name}, save as ${publicPath}`);
+            console.log(
+                `Received file: ${uploadedFiles[i].name}, save as ${publicPath}`
+            );
+
+            uploadedFiles[i].publicPath = publicPath;
+        }
 
         res.json({
             ok: true,
-            url: `https://${cfg.netlifySite}/${publicPath}`,
+            links: Object.fromEntries(
+                uploadedFiles.map((file) => [
+                    file.name,
+                    `https://${cfg.netlifySite}/${file.publicPath}`,
+                ])
+            ),
         });
 
         try {
             // Upload to github
-            indexJson.files['/' + publicPath] = file.hash;
+            uploadedFiles.forEach((file) => {
+                if (indexJson.files['/' + file.publicPath])
+                    console.log(
+                        '[ERROR]: Collision on generated guid !!! Overriding old file...'
+                    );
+
+                indexJson.files['/' + file.publicPath] = file.hash;
+            });
             await writeJson(indexPath, indexJson);
 
             await exec(`sh ./src/commit.sh`, {
-                env: { COMMIT_MSG: `[api] Uploaded ${publicPath}` },
+                env: {
+                    COMMIT_MSG: `[api] Uploaded ${uploadedFiles.length} files`,
+                },
             });
 
             queuePush();
@@ -89,13 +116,22 @@ uploadFileHandler.post(
 
             const promiseQueue = [];
             for (const sha1 of netlifyDeployRes.required) {
-                if (sha1 === file.hash) {
-                    promiseQueue.push(
-                        uploadFile(netlifyDeployRes.id, publicPath)
-                    );
+                for (let i = 0; i < uploadedFiles.length; i++) {
+                    if (sha1 === uploadedFiles[i].hash) {
+                        promiseQueue.push(
+                            uploadFile(
+                                netlifyDeployRes.id,
+                                uploadedFiles[i].publicPath
+                            )
+                        );
 
-                    continue;
+                        break;
+                    }
                 }
+
+                console.log(
+                    '[WARN]: Required file not found! Finding its in the index...'
+                );
 
                 for (const filePath in indexJson.files) {
                     if (sha1 === indexJson.files[filePath]) {
@@ -110,7 +146,9 @@ uploadFileHandler.post(
 
             await Promise.all(promiseQueue);
         } catch (err) {
-            console.log('Error while uploading: ' + JSON.stringify(file));
+            console.log(
+                'Error while uploading: ' + JSON.stringify(uploadedFiles)
+            );
             console.log(err);
         }
     }
