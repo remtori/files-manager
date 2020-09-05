@@ -3,5 +3,10 @@
     "repo": "files",
     "publishPath": "publish",
     "netlifySite": "files-remtori.netlify.app",
-    "gitPushTimeout": 5000
+    "gitPushTimeout": 5000,
+    "origin": [
+        "https://remtori.netlify.app",
+        "https://files-remtori.netlify.app",
+        "https://remtori-files.herokuap.com/"
+    ]
 }
