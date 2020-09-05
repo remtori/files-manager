@@ -57,8 +57,16 @@ uploadFileHandler.post(
     async (req: Request, res: Response) => {
         if (!req.files) return res.json({ ok: false });
 
-        const uploadedFiles = req.files.files as UploadedFileInfo[];
-        if (!uploadedFiles) return res.json({ ok: false });
+        const uploadedFiles: UploadedFileInfo[] = [];
+        for (const field in req.files) {
+            if (Array.isArray(req.files[field])) {
+                uploadedFiles.push(...(req.files[field] as any));
+            } else {
+                uploadedFiles.push(req.files[field] as any);
+            }
+        }
+
+        if (uploadedFiles.length === 0) return res.json({ ok: false });
 
         for (let i = 0; i < uploadedFiles.length; i++) {
             const publicPath = path

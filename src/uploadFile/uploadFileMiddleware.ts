@@ -71,8 +71,6 @@ export const uploadFileMiddleware = (opts: Partial<Options>) => (
             getPendingPromise,
         } = options.fileStreamHandler(options.uploadFolder, filename);
 
-        console.log(field + ' ' + filename);
-
         const uploadTimer = new TimeoutTimer(options.uploadTimeout, () => {
             file.removeAllListeners('data');
             file.resume();
