@@ -1,22 +1,20 @@
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
+import path from 'path';
 
 import { auth } from './auth';
 import { uploadFileHandler } from './uploadFileHandler';
-import { generateID } from './guid';
+import cfg from '../config.json';
 
 const PORT = process.env.PORT || 4999;
 const app = express();
 
 app.use(
     cors({
-        origin: [
-            /http:\/\/localhost:?\d+/i,
-            'https://remtori.netlify.app',
-            'https://files-remtori.netlify.app',
-            'https://remtori-files.herokuap.com/',
-        ],
+        origin: ([/https?:\/\/localhost:?\d+/i] as (string | RegExp)[]).concat(
+            cfg.origin
+        ),
     })
 );
 
@@ -33,12 +31,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(auth());
 app.use('/uploadFile', uploadFileHandler);
 app.get('/', (req, res) => {
-    res.send(`
-        <form action="/uploadFile" method="POST" encType="multipart/form-data">
-            <input type="file" name="file" id="file" />
-            <input type="submit" value="Submit" />
-        </form>
-    `);
+    res.sendFile(path.join(process.cwd(), './src/page.html'));
 });
 
 app.listen(PORT, () => {

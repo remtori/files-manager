@@ -4,12 +4,10 @@ Upload / Download and browse all the files
 
 ## Features
 
-- [x] Host files on Netlify
+-   [x] Host files on Netlify
 
-- [x] Mirror in [github repo](https://github.com/remtori/files)
+-   [x] Mirror in [github repo](https://github.com/remtori/files)
 
-- [ ] File browsing page
+-   [x] Drag & Drop upload
 
-- [ ] Drag & Drop upload
-
-- [ ] Authorize upload via other authentication method
+-   [ ] Authorize upload via other authentication method

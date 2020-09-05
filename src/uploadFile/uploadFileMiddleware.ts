@@ -136,7 +136,6 @@ export const uploadFileMiddleware = (opts: Partial<Options>) => (
 
         Promise.all(req[waitFlushProperty] as Promise<void>[])
             .then(() => {
-                console.log('All settle');
                 delete req[waitFlushProperty];
                 next();
             })

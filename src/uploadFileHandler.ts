@@ -57,7 +57,7 @@ uploadFileHandler.post(
     async (req: Request, res: Response) => {
         if (!req.files) return res.json({ ok: false });
 
-        const uploadedFiles = req.files['files[]'] as UploadedFileInfo[];
+        const uploadedFiles = req.files.files as UploadedFileInfo[];
         if (!uploadedFiles) return res.json({ ok: false });
 
         for (let i = 0; i < uploadedFiles.length; i++) {
