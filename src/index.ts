@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import path from 'path';
+import dev from 'consts:dev';
 
 import { auth } from './auth';
 import { uploadFileHandler } from './uploadFileHandler';
@@ -33,6 +34,13 @@ app.use('/uploadFile', uploadFileHandler);
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), './src/page.html'));
 });
+
+if (dev) {
+    app.use(
+        '/publish',
+        express.static(path.join('./tmp', cfg.repo, cfg.publishPath))
+    );
+}
 
 app.listen(PORT, () => {
     console.log('Server started! Listening at port: ' + PORT);

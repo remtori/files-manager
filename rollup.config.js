@@ -1,5 +1,6 @@
 import run from '@rollup/plugin-run';
 import typescript from '@rollup/plugin-typescript';
+import consts from 'rollup-plugin-consts';
 import builtinModules from 'builtin-modules';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -16,6 +17,9 @@ export default {
 	},
 	plugins: [
 		typescript(),
+		consts({
+			dev: dev,
+		}),
 		dev && run({
 			options: {
 				env: dotenv.config({

@@ -3,6 +3,7 @@ import child_process, { ExecOptions } from 'child_process';
 import fetch, { RequestInit } from 'node-fetch';
 import fs from 'fs-extra';
 import path from 'path';
+import dev from 'consts:dev';
 
 import {
     uploadFileMiddleware,
@@ -10,7 +11,7 @@ import {
 } from './uploadFile/uploadFileMiddleware';
 import cfg from '../config.json';
 
-const REPO_PATH = './tmp/files';
+const REPO_PATH = path.join('./tmp', cfg.repo);
 
 export const uploadFileHandler = Router();
 
@@ -80,14 +81,16 @@ uploadFileHandler.post(
             uploadedFiles[i].publicPath = publicPath;
         }
 
+        const uploadFileEntries = uploadedFiles.map((file) => [
+            file.name,
+            dev
+                ? `http://${req.header('host')}/publish/${file.publicPath}`
+                : `https://${cfg.netlifySite}/${file.publicPath}`,
+        ]);
+
         res.json({
             ok: true,
-            links: Object.fromEntries(
-                uploadedFiles.map((file) => [
-                    file.name,
-                    `https://${cfg.netlifySite}/${file.publicPath}`,
-                ])
-            ),
+            links: Object.fromEntries(uploadFileEntries),
         });
 
         try {
@@ -101,6 +104,8 @@ uploadFileHandler.post(
                 indexJson.files['/' + file.publicPath] = file.hash;
             });
             await writeJson(indexPath, indexJson);
+
+            if (dev) return;
 
             await exec(`sh ./src/commit.sh`, {
                 env: {
