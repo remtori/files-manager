@@ -1,6 +1,6 @@
 import path from 'path';
-import { exec, execFile } from './utils';
-import { repoPath, config } from './config';
+import { exec, execFile } from '../utils';
+import { repoPath, config } from '../config';
 
 export const commit = (message: string) =>
     execFile(path.join(__dirname, '../src/commit.sh'), {

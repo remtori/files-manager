@@ -4,12 +4,13 @@ import cors from 'cors';
 import path from 'path';
 import dev from 'consts:dev';
 
-import { auth } from './auth';
-import { uploadFileHandler } from './uploadFileHandler';
+import { auth } from './middleware/auth';
+import { uploadFileHandler } from './routes/uploadFileHandler';
 import cfg from '../config.json';
 import { getFilesIndex } from './filesIndex';
+import { uploadFolderPath } from './config';
 
-const PORT = process.env.PORT || 4999;
+global.PORT = process.env.PORT || 4999;
 const app = express();
 
 app.use(
@@ -37,14 +38,11 @@ app.get('/', (req, res) => {
 });
 
 if (dev) {
-    app.use(
-        '/publish',
-        express.static(path.join('./tmp', cfg.repo, cfg.publishPath))
-    );
+    app.use('/publish', express.static(uploadFolderPath));
 }
 
 getFilesIndex().then(() => {
-    app.listen(PORT, async () => {
-        console.log('Server started! Listening at port: ' + PORT);
+    app.listen(global.PORT, () => {
+        console.log('Server started! Listening at port: ' + global.PORT);
     });
 });

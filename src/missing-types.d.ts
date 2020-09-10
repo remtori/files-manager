@@ -7,3 +7,9 @@ declare module 'consts:publish_port' {
     const port: number;
     export default port;
 }
+
+declare namespace NodeJS {
+    interface Global {
+        PORT: number | string;
+    }
+}

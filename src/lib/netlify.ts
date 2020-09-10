@@ -2,9 +2,9 @@ import fs from 'fs-extra';
 import path from 'path';
 import fetch, { RequestInit } from 'node-fetch';
 
-import { UploadedFileInfo } from './UploadedFileInfo';
-import { uploadFolderPath, config } from './config';
-import { FileIndex } from './filesIndex';
+import { UploadedFileInfo } from '../UploadedFileInfo';
+import { uploadFolderPath, config } from '../config';
+import { FileIndex } from '../filesIndex';
 
 export function netlifyRequest(endpoint: string, opts: RequestInit) {
     return fetch(`https://api.netlify.com/api/v1/${endpoint}`, {

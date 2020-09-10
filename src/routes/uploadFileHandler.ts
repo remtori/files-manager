@@ -2,12 +2,13 @@ import { Router, Request, Response } from 'express';
 import path from 'path';
 import dev from 'consts:dev';
 
-import { uploadFileMiddleware } from './uploadFile/uploadFileMiddleware';
-import { uploadFolderPath, config } from './config';
-import { UploadedFileInfo } from './UploadedFileInfo';
-import { commit, push } from './git';
-import { uploadFiles } from './netlify';
-import { getFilesIndex, saveFilesIndex } from './filesIndex';
+import { uploadFileMiddleware } from '../middleware/uploadFile/uploadFileMiddleware';
+import { uploadFolderPath, config } from '../config';
+import { UploadedFileInfo } from '../UploadedFileInfo';
+import { commit, push } from '../lib/git';
+import { uploadFiles } from '../lib/netlify';
+import { getFilesIndex, saveFilesIndex } from '../filesIndex';
+import { linkFromPublicPath } from '../utils';
 
 export const uploadFileHandler = Router();
 
@@ -42,9 +43,7 @@ uploadFileHandler.post(
 
         const uploadFileEntries = uploadedFiles.map((file) => [
             file.name,
-            dev
-                ? `http://${req.header('host')}/publish/${file.publicPath}`
-                : `https://${config.netlifySite}/${file.publicPath}`,
+            linkFromPublicPath(file.publicPath),
         ]);
 
         res.json({

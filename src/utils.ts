@@ -1,3 +1,5 @@
+import dev from 'consts:dev';
+import { config } from './config';
 import child_process, { ExecOptions } from 'child_process';
 
 const factory = (method: 'exec' | 'execFile') => (
@@ -15,3 +17,8 @@ const factory = (method: 'exec' | 'execFile') => (
 
 export const exec = factory('exec');
 export const execFile = factory('execFile');
+
+export const linkFromPublicPath = (publicPath: string) =>
+    dev
+        ? `http://localhost:${global.PORT}/publish/${publicPath}`
+        : `https://${config.netlifySite}/${publicPath}`;

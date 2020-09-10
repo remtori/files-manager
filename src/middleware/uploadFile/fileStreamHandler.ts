@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { createHash } from 'crypto';
 import { fileInfoFromContentHead } from './fileInfo';
-import { generateID } from '../guid';
+import { generateID } from '../../lib/guid';
 
 export interface FileStreamHandler {
     (uploadFolder: string, filename: string): {
