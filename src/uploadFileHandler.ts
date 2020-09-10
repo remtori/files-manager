@@ -66,8 +66,9 @@ uploadFileHandler.post(
         await saveFilesIndex();
         if (dev) return;
 
+        await uploadFiles(indexJson, uploadedFiles);
+
         await commit(`[api] Uploaded ${uploadedFiles.length} files`);
         await push();
-        await uploadFiles(indexJson, uploadedFiles);
     }
 );

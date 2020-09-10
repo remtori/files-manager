@@ -53,16 +53,22 @@ export async function uploadFiles(
     );
 
     const promiseQueue = [];
+
+    let skip = false;
     for (const sha1 of netlifyDeployRes.required) {
+        skip = false;
         for (let i = 0; i < uploadedFiles.length; i++) {
             if (sha1 === uploadedFiles[i].hash) {
                 promiseQueue.push(
                     putFile(netlifyDeployRes.id, uploadedFiles[i].publicPath)
                 );
 
+                skip = true;
                 break;
             }
         }
+
+        if (skip) continue;
 
         console.log(
             '[WARN]: Required file not found! Finding its in the index...'
