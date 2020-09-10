@@ -7,6 +7,7 @@ import dev from 'consts:dev';
 import { auth } from './auth';
 import { uploadFileHandler } from './uploadFileHandler';
 import cfg from '../config.json';
+import { getFilesIndex } from './filesIndex';
 
 const PORT = process.env.PORT || 4999;
 const app = express();
@@ -42,6 +43,8 @@ if (dev) {
     );
 }
 
-app.listen(PORT, () => {
-    console.log('Server started! Listening at port: ' + PORT);
+getFilesIndex().then(() => {
+    app.listen(PORT, async () => {
+        console.log('Server started! Listening at port: ' + PORT);
+    });
 });
