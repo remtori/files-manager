@@ -11,7 +11,7 @@ export interface FileIndex {
 }
 
 let indexJson: any;
-export async function getFilesIndex(): Promise<FileIndex> {
+const filesIndexPromise: Promise<FileIndex> = (async () => {
     if (indexJson) return indexJson;
 
     if (await fs.pathExists(repoPath)) {
@@ -37,7 +37,9 @@ export async function getFilesIndex(): Promise<FileIndex> {
     }
 
     return indexJson;
-}
+})();
+
+export const getFilesIndex = () => filesIndexPromise;
 
 export async function saveFilesIndex() {
     await fs.writeFile(indexPath, JSON.stringify(indexJson, null, 2));
