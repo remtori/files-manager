@@ -9,6 +9,7 @@ import { uploadFileHandler } from './routes/uploadFileHandler';
 import cfg from '../config.json';
 import { getFilesIndex } from './filesIndex';
 import { uploadFolderPath } from './config';
+import { getFilesListHandler } from './routes/getFilesList';
 
 global.PORT = process.env.PORT || 4999;
 const app = express();
@@ -33,6 +34,7 @@ if (!dev) {
 
 app.use(auth());
 app.use('/uploadFile', uploadFileHandler);
+app.use('/filesList', getFilesListHandler);
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), './src/page.html'));
 });
