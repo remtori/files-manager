@@ -1,6 +1,7 @@
 import run from '@rollup/plugin-run';
 import typescript from '@rollup/plugin-typescript';
 import consts from 'rollup-plugin-consts';
+import { terser } from 'rollup-plugin-terser';
 import builtinModules from 'builtin-modules';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -16,6 +17,7 @@ export default {
 		format: 'cjs'
 	},
 	plugins: [
+		terser(),
 		typescript(),
 		consts({
 			dev: dev,
