@@ -3,9 +3,10 @@ import path from 'path';
 import { createHash } from 'crypto';
 import { fileInfoFromContentHead } from './fileInfo';
 import { generateID } from '../../lib/guid';
+import { Options } from './uploadFileMiddleware';
 
 export interface FileStreamHandler {
-	(uploadFolder: string, filename: string): {
+	(uploadFolder: string, filename: string, opts: Options): {
 		dataHandler(data: Buffer): void;
 		getFilePath(): string;
 		getFileSize(): number;
@@ -17,7 +18,8 @@ export interface FileStreamHandler {
 
 export const fileStreamHandler: FileStreamHandler = (
 	uploadFolder,
-	filename
+	filename,
+	opts
 ) => {
 	let fileSize = 0;
 	const hash = createHash('sha1');
@@ -28,32 +30,37 @@ export const fileStreamHandler: FileStreamHandler = (
 
 	return {
 		dataHandler(data) {
-			if (writeStream) {
-				hash.update(data);
-				writeStream.write(data);
-				fileSize += data.length;
-				return;
+			if (!writeStream) {
+				const { type, ext } = fileInfoFromContentHead(
+					data.toString('binary', 0, 16)
+				);
+
+				let relPath = generateID();
+				if (opts.useFileExtension) {
+					const fileExt = ext || path.extname(filename);
+					relPath += fileExt;
+				}
+
+				if (opts.filterFileByCategory) {
+					relPath = path.join(type, relPath);
+				}
+
+				filePath = path.join(uploadFolder, relPath);
+
+				fs.ensureDirSync(path.dirname(filePath));
+				writeStream = fs.createWriteStream(filePath);
+				writePromise = new Promise((resolve, reject) => {
+					writeStream!.on('finish', () => resolve());
+					writeStream!.on('error', (err) => {
+						console.log('Error write file: ' + err);
+						reject(err);
+					});
+				});
 			}
 
-			const { type, ext } = fileInfoFromContentHead(
-				data.toString('binary')
-			);
-			const fileExt = ext || path.extname(filename);
-			filePath = path.join(
-				uploadFolder,
-				type,
-				`${generateID()}${fileExt}`
-			);
-
-			fs.ensureDirSync(path.dirname(filePath));
-			writeStream = fs.createWriteStream(filePath);
-			writePromise = new Promise((resolve, reject) => {
-				writeStream!.on('finish', () => resolve());
-				writeStream!.on('error', (err) => {
-					console.log('Error write file: ' + err);
-					reject(err);
-				});
-			});
+			hash.update(data);
+			writeStream.write(data);
+			fileSize += data.length;
 		},
 		getFilePath: () => filePath || '',
 		getFileSize: () => fileSize,

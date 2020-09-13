@@ -14,7 +14,9 @@ export const uploadFilesHandler = Router();
 
 uploadFilesHandler.post(
 	'/',
-	uploadFileMiddleware({ uploadFolder: uploadFolderPath }),
+	uploadFileMiddleware({
+		uploadFolder: uploadFolderPath,
+	}),
 	async (req: Request, res: Response) => {
 		if (!req.files) return res.json({ ok: false });
 
