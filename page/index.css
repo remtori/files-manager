@@ -1,0 +1,12 @@
+body {
+	font-family: 'Lucida Console', Consolas, 'Courier New', monospace;
+}
+
+.sorting-menu > a.dropdown-item > span:first-child {
+	display: inline-block;
+	width: 1em;
+}
+
+.sorting-menu > a.dropdown-item > span:last-child {
+	margin-left: -0.5em;
+}

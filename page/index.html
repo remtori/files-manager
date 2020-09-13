@@ -1,0 +1,181 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>File Explorer</title>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css"
+			integrity="sha512-MoRNloxbStBcD8z3M/2BmnT+rg4IsMxPkXaGh2zD6LGNNFE80W3onsAhRcMAMrSoyWL9xD7Ert0men7vR8LUZg=="
+			crossorigin="anonymous"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
+			integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
+			crossorigin="anonymous"
+		/>
+		<link rel="stylesheet" href="/index.css" />
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.slim.min.js"
+			integrity="sha512-yrjEr6HY46i3hW7imuklZtRM7q1wyNUz8smKl2130OHTFHGbXGpHN4nYxrIeu0uJprDsLhycYY+xQ368d9OiaQ=="
+			crossorigin="anonymous"
+		></script>
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+			integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+			crossorigin="anonymous"
+		></script>
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js"
+			integrity="sha512-M5KW3ztuIICmVIhjSqXe01oV2bpe248gOxqmlcYrEzAvws7Pw3z6BK0iGbrwvdrUQUhi3eXgtxp5I8PDo9YfjQ=="
+			crossorigin="anonymous"
+		></script>
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class="col-md">
+					<header>
+						<h2>Remtori's Files Explorer</h2>
+						<!-- <i>
+							Ehmm.. that sound a little bit, weird .. like you guys was
+							invading my privacy and not welcome here
+						</i> -->
+					</header>
+					<section class="main">
+						<header>
+							<nav class="navbar navbar-light bg-light">
+								<ul class="nav">
+									<li class="nav-item">
+										<a href="#" class="nav-link text-dark">
+											<i class="fas fa-plus" aria-hidden="true"></i>
+											<span>New</span>
+										</a>
+									</li>
+									<li class="nav-item">
+										<a href="#" class="nav-link text-dark">
+											<i class="fas fa-upload" aria-hidden="true"></i>
+											<span>Upload</span>
+										</a>
+									</li>
+									<li class="nav-item">
+										<a href="#" class="nav-link text-dark">
+											<i class="fas fa-download" aria-hidden="true"></i>
+											<span>Download</span>
+										</a>
+									</li>
+									<li class="nav-item dropdown">
+										<button
+											class="btn dropdown-toggle"
+											type="button"
+											id="explorerStyleMenuBtn"
+											data-toggle="dropdown"
+											aria-haspopup="true"
+											aria-expanded="false"
+										>
+											<i class="fas fa-th-list" aria-hidden="true"></i>
+											<span>Display</span>
+										</button>
+										<div
+											class="dropdown-menu"
+											aria-labelledby="explorerStyleMenuBtn"
+										>
+											<a href="#" class="dropdown-item text-dark">
+												<i class="fas fa-th-list" aria-hidden="true"></i>
+												<span>List</span>
+											</a>
+											<a href="#" class="dropdown-item text-dark">
+												<i class="fas fa-th" aria-hidden="true"></i>
+												<span>Tiles</span>
+											</a>
+											<a href="#" class="dropdown-item text-dark">
+												<i class="fas fa-columns" aria-hidden="true"></i>
+												<span>Columns</span>
+											</a>
+										</div>
+									</li>
+									<li class="nav-item dropdown">
+										<button
+											class="btn dropdown-toggle"
+											type="button"
+											id="explorerSortMenuBtn"
+											data-toggle="dropdown"
+											aria-haspopup="true"
+											aria-expanded="false"
+										>
+											<i class="fas fa-sort-amount-down" aria-hidden="true"></i>
+											<span>Sort</span>
+										</button>
+										<div
+											class="sorting-menu dropdown-menu"
+											aria-labelledby="explorerSortMenuBtn"
+										>
+											<a href="#" class="dropdown-item text-dark pl-2">
+												<span>&check;</span>
+												<span>Name</span>
+											</a>
+											<a href="#" class="dropdown-item text-dark pl-2">
+												<span></span>
+												<span>Modified</span>
+											</a>
+											<a href="#" class="dropdown-item text-dark pl-2">
+												<span></span>
+												<span>Size</span>
+											</a>
+											<div class="dropdown-divider"></div>
+											<a href="#" class="dropdown-item text-dark pl-2">
+												<span></span>
+												<span>Ascending</span>
+											</a>
+											<a href="#" class="dropdown-item text-dark pl-2">
+												<span>&check;</span>
+												<span>Descending</span>
+											</a>
+										</div>
+									</li>
+								</ul>
+								<form action="" class="form-inline my-0">
+									<input
+										class="form-control"
+										type="search"
+										placeholder="Search in image"
+										aria-label="Search"
+									/>
+								</form>
+							</nav>
+							<nav aria-label="breadcrumb">
+								<ul class="breadcrumb">
+									<li class="breadcrumb-item active"><a href="#">root</a></li>
+									<li class="breadcrumb-item active">
+										<a href="#">managed</a>
+									</li>
+									<li class="breadcrumb-item active"><a href="#">repos</a></li>
+									<li class="breadcrumb-item" aria-current="page">
+										files-manager
+									</li>
+								</ul>
+							</nav>
+						</header>
+						<main>
+							<ul class="list-group">
+								<li class="list-group-item"><i class="fas fa-folder"></i>..</li>
+								<li class="list-group-item">
+									<i class="fas fa-folder"></i>Folder A
+								</li>
+								<li class="list-group-item">
+									<i class="fas fa-folder"></i>remtori
+								</li>
+								<li class="list-group-item">
+									<i class="fas fa-file"></i>Lets It Go.txt
+								</li>
+								<li class="list-group-item"><i class="fas fa-file"></i>holy</li>
+							</ul>
+						</main>
+					</section>
+					<footer></footer>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
