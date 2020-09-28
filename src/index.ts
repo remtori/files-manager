@@ -7,7 +7,6 @@ import dev from 'consts:dev';
 import { auth } from './middleware/auth';
 import { getFilesIndex } from './filesIndex';
 import { uploadFolderPath, config } from './config';
-import { getFilesListHandler } from './routes/getFilesList';
 import { uploadFilesHandler } from './routes/uploadFilesHandler';
 
 global.PORT = process.env.PORT || 4999;
@@ -32,15 +31,12 @@ if (!dev) {
 }
 
 app.use(auth());
-app.use('/uploadFiles', uploadFilesHandler);
-app.use('/filesList', getFilesListHandler);
+app.use('/files', uploadFilesHandler);
+app.use('/files', express.static(uploadFolderPath));
 app.get('/', (req, res) => {
 	res.sendFile(path.join(process.cwd(), './src/page.html'));
 });
 
-if (dev) {
-	app.use('/publish', express.static(uploadFolderPath));
-}
 
 getFilesIndex().then(() => {
 	app.listen(global.PORT, () => {

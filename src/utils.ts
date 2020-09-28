@@ -1,3 +1,4 @@
+import path from 'path';
 import dev from 'consts:dev';
 import { config } from './config';
 import child_process, { ExecOptions } from 'child_process';
@@ -20,5 +21,11 @@ export const execFile = factory('execFile');
 
 export const linkFromPublicPath = (publicPath: string) =>
     dev
-        ? `http://localhost:${global.PORT}/publish/${publicPath}`
+        ? `http://localhost:${global.PORT}/files/${publicPath}`
         : `https://${config.netlifySite}/${publicPath}`;
+
+
+export function isAbsolute(p: string) {
+    if (p[0] === '/') p = p.slice(1);
+    return path.posix.normalize(p + '/') === path.posix.normalize(path.posix.resolve(p) + '/');
+}
