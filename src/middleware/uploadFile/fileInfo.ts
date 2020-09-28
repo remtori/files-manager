@@ -14,7 +14,10 @@ const filePatterns = {
     video: {
         avi: /^RIFF....AVI /,
         mlv: /^MLVI/,
-        mp4: /^ftypisom/,
+        mov: /^....(ftypqt|moov|mdat|wide)/,
+        mp4: /^\x00\x00\x00\x18ftyp(isom|MSNV|mp42)/,
+        flv: /^\x00\x00\x00\x18ftypM4V/,
+        m4a: /^\x00\x00\x00\x18ftypM4A/,
     },
 };
 
