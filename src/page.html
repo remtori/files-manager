@@ -78,7 +78,7 @@
 		<center>
 			<form
 				id="form"
-				action="/uploadFiles"
+				action="/files"
 				method="POST"
 				enctype="multipart/form-data"
 			>
@@ -197,7 +197,7 @@
 						return alert('Error. Please, contact the webmaster!');
 
 					var data = JSON.parse(ajax.responseText);
-					if (!data.ok) return alert('Error!');
+					if (!data.ok) return alert('Error. Please, contact the webmaster!');
 
 					var link, ele, a, row;
 					for (var file in data.links) {

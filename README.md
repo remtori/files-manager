@@ -4,24 +4,24 @@ Upload / Download and browse all the files
 
 ## Features
 
--   [x] Host files on Netlify
+- [x] Host files on Netlify
 
--   [x] Mirror in [github repo](https://github.com/remtori/files)
+- [ ] Debounce upload file to netlify, use my-self as a router in the mean time
 
--   [x] Drag & Drop upload
+- [x] Drag & Drop upload
 
--   [ ] Files browsing, with file icon and file view
+- [ ] Files browsing, with file icon and file view
 
--   [ ] Authorize upload via other authentication method
+- [ ] Authorize upload via other authentication method
 
 ## File Viewer
 
 Supported files:
 
--   [ ] Text
+- [ ] Text
 
--   [ ] Image
+- [ ] Image
 
--   [ ] Video (Maybe build my own media player)
+- [ ] Video (Maybe build my own media player)
 
--   [ ] Document files (.pdf, .docx, .xlsx, .pptx, ...)
+- [ ] Document files (.pdf, .docx, .xlsx, .pptx, ...)

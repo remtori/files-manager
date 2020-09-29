@@ -1,4 +1,3 @@
-import fs from 'fs-extra';
 import path from 'path';
 import { Router, Request, Response } from 'express';
 import dev from 'consts:dev';
@@ -7,11 +6,10 @@ import {
 	UploadedFile,
 	uploadFileMiddleware,
 } from '../middleware/uploadFile/uploadFileMiddleware';
-import { uploadFolderPath, tempPath, managedFolderPath } from '../config';
+import { tempPath } from '../config';
 import { UploadedFileInfo } from '../UploadedFileInfo';
-import { commit, push } from '../lib/git';
 import { uploadFiles } from '../lib/netlify';
-import { getFilesIndex, saveFilesIndex } from '../filesIndex';
+import { getFilesIndex, addFileToIndex } from '../filesIndex';
 import { isAbsolute, linkFromPublicPath } from '../utils';
 
 export const uploadFilesHandler = Router();
@@ -19,7 +17,7 @@ export const uploadFilesHandler = Router();
 uploadFilesHandler.post(
 	'/',
 	uploadFileMiddleware({
-		uploadFolder: uploadFolderPath,
+		uploadFolder: tempPath,
 	}),
 	async (req: Request, res: Response) => {
 		if (!req.files) return res.json({ ok: false });
@@ -37,7 +35,7 @@ uploadFilesHandler.post(
 
 		for (let i = 0; i < uploadedFiles.length; i++) {
 			const publicPath = path
-				.relative(uploadFolderPath, uploadedFiles[i].filePath)
+				.relative(tempPath, uploadedFiles[i].filePath)
 				.replace(/\\/g, '/');
 
 			console.log(
@@ -60,21 +58,15 @@ uploadFilesHandler.post(
 		const indexJson = await getFilesIndex();
 
 		uploadedFiles.forEach((file) => {
-			if (indexJson.files['/' + file.publicPath])
+			if (indexJson.hashes['/' + file.publicPath])
 				console.log(
 					'[ERROR]: Collision on generated guid !!! Overriding old file...'
 				);
 
-			indexJson.files['/' + file.publicPath] = file.hash;
+			addFileToIndex(file);
 		});
 
-		await saveFilesIndex();
-		if (dev) return;
-
-		await uploadFiles(indexJson, uploadedFiles);
-
-		await commit(`[api] Uploaded ${uploadedFiles.length} files`);
-		await push();
+		if (!dev) await uploadFiles(indexJson, uploadedFiles);
 	}
 );
 
@@ -120,19 +112,9 @@ uploadFilesHandler.put(
 			publicPath: publicPath,
 		};
 
-		await fs.rename(
-			uploadedFile.filePath,
-			path.join(uploadFolderPath, publicPath)
-		);
-
 		const indexJson = await getFilesIndex();
-		indexJson.files[uploadedFile.publicPath] = uploadedFile.hash;
-		await saveFilesIndex();
+		addFileToIndex(uploadedFile);
 
-		if (dev) return;
-
-		await uploadFiles(indexJson, [uploadedFile]);
-		await commit(`[api] Updated ${publicPath}`);
-		await push();
+		if (!dev) await uploadFiles(indexJson, [uploadedFile]);
 	}
 );

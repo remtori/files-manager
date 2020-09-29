@@ -1,46 +1,53 @@
-import fs from 'fs-extra';
+import { config } from './config';
+import { netlifyRequest } from './lib/netlify';
+import { UploadedFileInfo } from './UploadedFileInfo';
 
-import { exec } from './utils';
-import { repoPath, indexPath, config } from './config';
+interface NetlifyFile {
+    id: string;
+    path: string;
+    sha: string;
+    size: number;
+}
 
 export interface FileIndex {
-    async: boolean;
-    files: {
+    files: NetlifyFile[];
+    hashes: {
         [path: string]: string /* sha1 hash */;
     };
 }
 
-let indexJson: any;
+let indexJson: FileIndex | undefined;
 const filesIndexPromise: Promise<FileIndex> = (async () => {
     if (indexJson) return indexJson;
 
-    if (await fs.pathExists(repoPath)) {
-        console.log('Repo already cloned, pulling for latest changes!');
-        await exec(`git pull`, { cwd: repoPath });
-    } else {
-        console.log(
-            `Cloning from https://github.com/${config.owner}/${config.repo}`
-        );
+    const indexes: NetlifyFile[] = await netlifyRequest(
+        `sites/${config.netlifySite}/files`,
+        { method: 'GET' }
+    );
 
-        await exec(
-            `git clone https://github.com/${config.owner}/${config.repo}.git ${repoPath} --depth=1`
-        );
-    }
-
-    await fs.ensureFile(indexPath);
-    try {
-        const jsonText = await fs.readFile(indexPath, 'utf-8');
-        indexJson = JSON.parse(jsonText) as FileIndex;
-        indexJson.files = indexJson.files || {};
-    } catch (e) {
-        indexJson = { async: true, files: {} };
-    }
+    indexJson = { files: indexes, hashes: {} };
+    indexes.forEach(file => {
+        indexJson!.hashes[file.path] = file.sha;
+    });
 
     return indexJson;
 })();
 
 export const getFilesIndex = () => filesIndexPromise;
 
-export async function saveFilesIndex() {
-    await fs.writeFile(indexPath, JSON.stringify(indexJson, null, 2));
+export function addFileToIndex(file: UploadedFileInfo) {
+    if (!indexJson) throw new Error('You needed to call `getFilesIndex` at least once before this function');
+
+    const netlifyFile = {
+        id: '/' + file.publicPath,
+        path: '/' + file.publicPath,
+        sha: file.hash,
+        size: file.size,
+    };
+
+    indexJson.hashes[file.publicPath] = file.hash;
+    indexJson.files.push(netlifyFile);
+
+    console.log('File added:');
+    console.log(netlifyFile);
 }

@@ -3,10 +3,10 @@ import path from 'path';
 import fetch, { RequestInit } from 'node-fetch';
 
 import { UploadedFileInfo } from '../UploadedFileInfo';
-import { uploadFolderPath, config } from '../config';
+import { config, tempPath } from '../config';
 import { FileIndex } from '../filesIndex';
 
-export function netlifyRequest(endpoint: string, opts: RequestInit) {
+export function netlifyRequest(endpoint: string, opts: RequestInit = {}) {
     return fetch(`https://api.netlify.com/api/v1/${endpoint}`, {
         ...opts,
         headers: {
@@ -14,7 +14,16 @@ export function netlifyRequest(endpoint: string, opts: RequestInit) {
             Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
         },
     })
-        .then((r) => r.json())
+        .then((r) => r.text())
+        .then(text => {
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.log('Failed to parse:');
+                console.log(text);
+                console.log(e);
+            }
+        })
         .then((res) => {
             if (res.code && res.code != 200) {
                 console.log(`Netlify error (${res.code})`);
@@ -25,7 +34,7 @@ export function netlifyRequest(endpoint: string, opts: RequestInit) {
         });
 }
 
-export function putFile(deployId: string, publicPath: string) {
+export function putFile(deployId: string, publicPath: string, filePath: string) {
     if (publicPath[0] === '/') publicPath = publicPath.slice(1);
 
     return netlifyRequest(`deploys/${deployId}/files/${publicPath}`, {
@@ -33,7 +42,7 @@ export function putFile(deployId: string, publicPath: string) {
         headers: {
             'Content-Type': 'application/octet-stream',
         },
-        body: fs.createReadStream(path.join(uploadFolderPath, publicPath)),
+        body: fs.createReadStream(path.join(tempPath, filePath)),
     });
 }
 
@@ -48,19 +57,34 @@ export async function uploadFiles(
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(indexJson),
+            body: JSON.stringify({
+                async: true,
+                files: indexJson.hashes,
+            }),
         }
     );
+
+    uploadRequiredFiles(netlifyDeployRes.id, uploadedFiles);
+}
+
+async function uploadRequiredFiles(deployId: string, uploadedFiles: UploadedFileInfo[]) {
+    const netlifyDeploy = await netlifyRequest(`deploys/${deployId}`);
+    if (netlifyDeploy.state === 'ready' || netlifyDeploy.state === 'error') return;
+
+    console.log('=========================================================');
+    console.log(`Deploy id: ${deployId}`);
+    console.log('Required hashes:');
+    console.log('\t' + netlifyDeploy.required.join('\n\t'));
 
     const promiseQueue = [];
 
     let skip = false;
-    for (const sha1 of netlifyDeployRes.required) {
+    for (const sha1 of netlifyDeploy.required) {
         skip = false;
         for (let i = 0; i < uploadedFiles.length; i++) {
             if (sha1 === uploadedFiles[i].hash) {
                 promiseQueue.push(
-                    putFile(netlifyDeployRes.id, uploadedFiles[i].publicPath)
+                    putFile(deployId, uploadedFiles[i].publicPath, uploadedFiles[i].filePath)
                 );
 
                 skip = true;
@@ -68,24 +92,11 @@ export async function uploadFiles(
             }
         }
 
-        if (skip) continue;
-
-        console.log(
-            '[WARN]: Required file not found! Finding its in the index...'
-        );
-
-        for (const filePath in indexJson.files) {
-            if (sha1 === indexJson.files[filePath]) {
-                promiseQueue.push(putFile(netlifyDeployRes.id, filePath));
-
-                break;
-            }
-        }
-
-        console.log(
-            `[ERROR]: Required hash ${sha1} can not be found in any of the existing files`
-        );
+        if (!skip) console.log(`[ERROR]: Required file not found! hash: ${sha1}`);
     }
 
     await Promise.all(promiseQueue);
+    console.log(`Uploaded ${promiseQueue.length} to Netlify`);
+
+    await uploadRequiredFiles(deployId, uploadedFiles);
 }
