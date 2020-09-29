@@ -63,7 +63,7 @@ uploadFilesHandler.post(
 					'[ERROR]: Collision on generated guid !!! Overriding old file...'
 				);
 
-			addFileToIndex(file);
+			addFileToIndex(file.publicPath, file.hash, file.size);
 		});
 
 		if (!dev) await uploadFiles(indexJson, uploadedFiles);
@@ -113,7 +113,7 @@ uploadFilesHandler.put(
 		};
 
 		const indexJson = await getFilesIndex();
-		addFileToIndex(uploadedFile);
+		addFileToIndex(uploadedFile.publicPath, uploadedFile.hash, uploadedFile.size);
 
 		if (!dev) await uploadFiles(indexJson, [uploadedFile]);
 	}

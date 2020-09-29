@@ -40,7 +40,9 @@ app.get('/', (req, res) => {
 	res.sendFile(path.join(process.cwd(), './src/page.html'));
 });
 
-getFilesIndex().then(() => {
+getFilesIndex().then(indexJSON => {
+	// console.log(JSON.stringify(indexJSON, null, 2));
+
 	app.listen(global.PORT, () => {
 		console.log('Server started! Listening at port: ' + global.PORT);
 	});
