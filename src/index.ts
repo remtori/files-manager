@@ -7,7 +7,9 @@ import dev from 'consts:dev';
 import { auth } from './middleware/auth';
 import { getFilesIndex } from './filesIndex';
 import { config } from './config';
-import { uploadFilesHandler } from './routes/uploadFilesHandler';
+import { uploadFilesHandler } from './handler/uploadFilesHandler';
+import { viewFilesHandler } from './handler/viewFilesHandler';
+import { onlyHttps } from './handler/onlyHttps';
 
 global.PORT = process.env.PORT || 4999;
 const app = express();
@@ -21,24 +23,13 @@ app.use(
 );
 
 app.use(morgan('short'));
-
-if (!dev) {
-	app.use((req, res, next) => {
-		if (
-			req.header('x-forwarded-proto') === 'https' ||
-			req.hostname.includes('localhost')
-		)
-			return next();
-
-		res.redirect(`https://${req.header('host')}${req.url}`);
-	});
-}
+if (!dev) app.use(onlyHttps);
+app.set('view engine', 'ejs');
 
 app.use(auth());
+app.use('/files', viewFilesHandler);
 app.use('/files', uploadFilesHandler);
-app.get('/', (req, res) => {
-	res.sendFile(path.join(process.cwd(), './src/page.html'));
-});
+app.use('/', express.static(path.join(process.cwd(), './views')));
 
 getFilesIndex().then(indexJSON => {
 	// console.log(JSON.stringify(indexJSON, null, 2));

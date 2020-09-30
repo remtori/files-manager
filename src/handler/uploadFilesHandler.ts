@@ -10,7 +10,7 @@ import { tempPath } from '../config';
 import { UploadedFileInfo } from '../UploadedFileInfo';
 import { uploadFiles } from '../lib/netlify';
 import { getFilesIndex, addFileToIndex } from '../filesIndex';
-import { isAbsolute, linkFromPublicPath } from '../utils';
+import { isAbsolute, isValidPath, linkFromPublicPath } from '../utils';
 
 export const uploadFilesHandler = Router();
 
@@ -101,6 +101,13 @@ uploadFilesHandler.put(
 			req.params.path = '/' + req.params.path;
 
 		const publicPath: string = req.params.path;
+		const indexJson = await getFilesIndex();
+		if (!isValidPath(publicPath, indexJson)) {
+			return res.json({
+				ok: false,
+				message: 'Invalid file path',
+			});
+		}
 
 		res.json({
 			ok: true,
@@ -112,9 +119,7 @@ uploadFilesHandler.put(
 			publicPath: publicPath,
 		};
 
-		const indexJson = await getFilesIndex();
 		addFileToIndex(uploadedFile.publicPath, uploadedFile.hash, uploadedFile.size);
-
 		if (!dev) await uploadFiles(indexJson, [uploadedFile]);
 	}
 );

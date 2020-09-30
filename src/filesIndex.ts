@@ -10,7 +10,7 @@ interface NetlifyFile {
     size: number;
 }
 
-interface IFileNode {
+export interface IFileNode {
     name: string;
     size: number;
     path: string;

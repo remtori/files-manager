@@ -1,23 +1,7 @@
 import path from 'path';
 import dev from 'consts:dev';
 import { config } from './config';
-// import child_process, { ExecOptions } from 'child_process';
-
-// const factory = (method: 'exec' | 'execFile') => (
-//     cmd: string,
-//     options: ExecOptions = {}
-// ) =>
-//     new Promise((resolve, reject) => {
-//         child_process[method](cmd, options, (err, stdout, stderr) => {
-//             if (err) return console.error(err);
-//             if (stderr) console.error(stderr);
-//             console.log(stdout);
-//             resolve(stdout);
-//         });
-//     });
-
-// export const exec = factory('exec');
-// export const execFile = factory('execFile');
+import { FileIndex, IFileNode } from './filesIndex';
 
 export const linkFromPublicPath = (publicPath: string) =>
     dev
@@ -28,4 +12,27 @@ export const linkFromPublicPath = (publicPath: string) =>
 export function isAbsolute(p: string) {
     if (p[0] === '/') p = p.slice(1);
     return path.posix.normalize(p + '/') === path.posix.normalize(path.posix.resolve(p) + '/');
+}
+
+/**
+ * Return `IFileNode` if the file exist,
+ * otherwise return `false` if the path is invalid
+ *           return `true` if we can create a new file at the path
+ */
+export function getFileNode(publicPath: string, indexJSON: FileIndex): IFileNode | boolean {
+    if (publicPath === '/') return indexJSON.root;
+
+    let destNode: IFileNode = indexJSON.root;
+    const paths = publicPath.split('/');
+    for (let i = 1; i < paths.length; i++) {
+        if (i < paths.length - 1 && !destNode.isDirectory) return false;
+        if (!destNode.children![paths[i]]) return true;
+        destNode = destNode.children![paths[i]];
+    }
+
+    return destNode;
+}
+
+export function isValidPath(publicPath: string, indexJSON: FileIndex): boolean {
+    return Boolean(getFileNode(publicPath, indexJSON));
 }

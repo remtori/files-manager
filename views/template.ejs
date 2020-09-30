@@ -146,31 +146,17 @@
 							</nav>
 							<nav aria-label="breadcrumb">
 								<ul class="breadcrumb">
-									<li class="breadcrumb-item active"><a href="#">root</a></li>
-									<li class="breadcrumb-item active">
-										<a href="#">managed</a>
-									</li>
-									<li class="breadcrumb-item active"><a href="#">repos</a></li>
-									<li class="breadcrumb-item" aria-current="page">
-										files-manager
-									</li>
+									<% for (let i = 0; i < paths.length - 1; i++) { %>
+										<li class="breadcrumb-item active">
+											<a href="/files<%- urlPaths[i] %>"><%= paths[i] %></a>
+										</li>
+									<% } %>
+									<li class="breadcrumb-item" aria-current="page"><%= paths[paths.length - 1] %></li>
 								</ul>
 							</nav>
 						</header>
 						<main>
-							<ul class="list-group">
-								<li class="list-group-item"><i class="fas fa-folder"></i>..</li>
-								<li class="list-group-item">
-									<i class="fas fa-folder"></i>Folder A
-								</li>
-								<li class="list-group-item">
-									<i class="fas fa-folder"></i>remtori
-								</li>
-								<li class="list-group-item">
-									<i class="fas fa-file"></i>Lets It Go.txt
-								</li>
-								<li class="list-group-item"><i class="fas fa-file"></i>holy</li>
-							</ul>
+							<%- fileNode.isDirectory ? include('folder-viewer') : include('file-viewer') %>
 						</main>
 					</section>
 					<footer></footer>
