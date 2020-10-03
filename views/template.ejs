@@ -60,7 +60,7 @@
 										</a>
 									</li>
 									<li class="nav-item">
-										<a href="#" class="nav-link text-dark">
+										<a href="<%- setQuery('download', 'true') %>" class="nav-link text-dark">
 											<i class="fas fa-download" aria-hidden="true"></i>
 											<span>Download</span>
 										</a>
@@ -74,22 +74,23 @@
 											aria-haspopup="true"
 											aria-expanded="false"
 										>
-											<i class="fas fa-th-list" aria-hidden="true"></i>
+											<% const icon = { list: 'th-list', tiles: 'th', columns: 'columns' } %>
+											<i class="fas fa-<%- icon[config.display] %>" aria-hidden="true"></i>
 											<span>Display</span>
 										</button>
 										<div
 											class="dropdown-menu"
 											aria-labelledby="explorerStyleMenuBtn"
 										>
-											<a href="#" class="dropdown-item text-dark">
+											<a href="<%- setQuery('display', 'list') %>" class="dropdown-item text-dark">
 												<i class="fas fa-th-list" aria-hidden="true"></i>
 												<span>List</span>
 											</a>
-											<a href="#" class="dropdown-item text-dark">
+											<a href="<%- setQuery('display', 'tiles') %>" class="dropdown-item text-dark">
 												<i class="fas fa-th" aria-hidden="true"></i>
 												<span>Tiles</span>
 											</a>
-											<a href="#" class="dropdown-item text-dark">
+											<a href="<%- setQuery('display', 'columns') %>" class="dropdown-item text-dark">
 												<i class="fas fa-columns" aria-hidden="true"></i>
 												<span>Columns</span>
 											</a>
@@ -111,44 +112,46 @@
 											class="sorting-menu dropdown-menu"
 											aria-labelledby="explorerSortMenuBtn"
 										>
-											<a href="#" class="dropdown-item text-dark pl-2">
-												<span>&check;</span>
+											<a href="<%- setQuery('sort', 'name') %>" class="dropdown-item text-dark pl-2">
+												<span><%- config.sort == 'name' ? '&check;' : '' %></span>
 												<span>Name</span>
 											</a>
-											<a href="#" class="dropdown-item text-dark pl-2">
-												<span></span>
+											<a href="<%- setQuery('sort', 'modified') %>" class="dropdown-item text-dark pl-2">
+												<span><%- config.sort == 'modified' ? '&check;' : '' %></span>
 												<span>Modified</span>
 											</a>
-											<a href="#" class="dropdown-item text-dark pl-2">
-												<span></span>
+											<a href="<%- setQuery('sort', 'size') %>" class="dropdown-item text-dark pl-2">
+												<span><%- config.sort == 'size' ? '&check;' : '' %></span>
 												<span>Size</span>
 											</a>
 											<div class="dropdown-divider"></div>
-											<a href="#" class="dropdown-item text-dark pl-2">
-												<span></span>
+											<a href="<%- setQuery('order', 'ascending') %>" class="dropdown-item text-dark pl-2">
+												<span><%- config.order == 'ascending' ? '&check;' : '' %></span>
 												<span>Ascending</span>
 											</a>
-											<a href="#" class="dropdown-item text-dark pl-2">
-												<span>&check;</span>
+											<a href="<%- setQuery('order', 'descending') %>" class="dropdown-item text-dark pl-2">
+												<span><%- config.order == 'descending' ? '&check;' : '' %></span>
 												<span>Descending</span>
 											</a>
 										</div>
 									</li>
 								</ul>
-								<form action="" class="form-inline my-0">
+								<form action="/search" class="form-inline my-0">
 									<input
 										class="form-control"
 										type="search"
+										name="search"
 										placeholder="Search in image"
 										aria-label="Search"
 									/>
+									<input type="hidden" name="url" value="<%= request.originalUrl %>">
 								</form>
 							</nav>
 							<nav aria-label="breadcrumb">
 								<ul class="breadcrumb">
 									<% for (let i = 0; i < paths.length - 1; i++) { %>
 										<li class="breadcrumb-item active">
-											<a href="/files<%- urlPaths[i] %>"><%= paths[i] %></a>
+											<a href="/files<%- urlPaths[i] + queryString %>"><%= paths[i] %></a>
 										</li>
 									<% } %>
 									<li class="breadcrumb-item" aria-current="page"><%= paths[paths.length - 1] %></li>
