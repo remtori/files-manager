@@ -34,7 +34,7 @@ uploadFilesHandler.post(
 		if (uploadedFiles.length === 0) return res.json({ ok: false });
 
 		for (let i = 0; i < uploadedFiles.length; i++) {
-			const publicPath = path
+			const publicPath = '/' + path
 				.relative(tempPath, uploadedFiles[i].filePath)
 				.replace(/\\/g, '/');
 
@@ -58,7 +58,7 @@ uploadFilesHandler.post(
 		const indexJson = await getFilesIndex();
 
 		uploadedFiles.forEach((file) => {
-			if (indexJson.hashes['/' + file.publicPath])
+			if (indexJson.hashes[file.publicPath])
 				console.log(
 					'[ERROR]: Collision on generated guid !!! Overriding old file...'
 				);

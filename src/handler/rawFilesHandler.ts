@@ -6,7 +6,7 @@ export const rawFilesHandler = Router();
 
 rawFilesHandler.get('/*', (req: Request, res: Response) => {
     const stream = got.stream(
-        linkFromPublicPath(req.path, false),
+        linkFromPublicPath('/' + req.path, false),
         { retry: 0 }
     );
 

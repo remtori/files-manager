@@ -1,7 +1,8 @@
+import fs from 'fs-extra';
 import path from 'path';
+import dev from 'consts:dev';
 import { config } from './config';
 import { netlifyRequest } from './lib/netlify';
-import { UploadedFileInfo } from './UploadedFileInfo';
 
 interface NetlifyFile {
     id: string;
@@ -51,6 +52,7 @@ const filesIndexPromise: Promise<FileIndex> = (async () => {
 export const getFilesIndex = () => filesIndexPromise;
 
 export function addFileToIndex(publicPath: string, hash: string, size: number) {
+    indexJson.hashes[publicPath] = hash;
     const fileNode: IFileNode = {
         name: path.basename(publicPath),
         path: publicPath,
@@ -58,10 +60,7 @@ export function addFileToIndex(publicPath: string, hash: string, size: number) {
         size,
     };
 
-    indexJson.hashes[publicPath] = hash;
-
     let destNode: IFileNode = indexJson.root;
-
     const paths = publicPath.split('/');
     for (let i = 1; i < paths.length - 1; i++) {
         if (!destNode.isDirectory) {

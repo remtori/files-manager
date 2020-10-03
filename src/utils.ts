@@ -5,8 +5,8 @@ import { FileIndex, IFileNode } from './filesIndex';
 
 export const linkFromPublicPath = (publicPath: string, isDev = dev) =>
     isDev
-        ? `http://localhost:${global.PORT}/files/${publicPath}`
-        : `https://${config.netlifySite}/${publicPath}`;
+        ? `http://localhost:${global.PORT}/files${publicPath}`
+        : `https://${config.netlifySite}${publicPath}`;
 
 
 export function isAbsolute(p: string) {

@@ -31,6 +31,9 @@ app.use(auth());
 app.use('/explorer', viewFilesHandler);
 app.use('/files', uploadFilesHandler);
 app.use('/files', rawFilesHandler);
+app.get('/dump', (req, res) => {
+	getFilesIndex().then(indexJSON => res.json(indexJSON));
+});
 app.use('/', express.static(path.join(process.cwd(), './views')));
 
 getFilesIndex().then(indexJSON => {
