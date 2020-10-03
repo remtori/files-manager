@@ -2,6 +2,7 @@ import { encode as queryEncode, decode as queryDecode } from 'querystring';
 import { Request, Response, Router } from 'express';
 import { getFilesIndex } from '../filesIndex';
 import { getFileNode } from '../utils';
+import { config } from '../config';
 
 export const viewFilesHandler = Router();
 
@@ -31,7 +32,7 @@ viewFilesHandler.get('/*', async (req: Request, res: Response) => {
         fileNode,
         queryString,
         queryObject,
-        urlPaths: urlPaths.map((_, i) => `${urlPaths.slice(0, i + 1).join('/')}`),
+        urlPaths: urlPaths.map((_, i) => `/explorer${urlPaths.slice(0, i + 1).join('/')}`),
         setQuery: (key: string, value: string) => {
             return '?' + queryEncode(
                 Object.assign({}, queryObject, {

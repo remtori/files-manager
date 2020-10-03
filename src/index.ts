@@ -10,6 +10,7 @@ import { config } from './config';
 import { uploadFilesHandler } from './handler/uploadFilesHandler';
 import { viewFilesHandler } from './handler/viewFilesHandler';
 import { onlyHttps } from './handler/onlyHttps';
+import { rawFilesHandler } from './handler/rawFilesHandler';
 
 global.PORT = process.env.PORT || 4999;
 const app = express();
@@ -27,8 +28,9 @@ if (!dev) app.use(onlyHttps);
 app.set('view engine', 'ejs');
 
 app.use(auth());
-app.use('/files', viewFilesHandler);
+app.use('/explorer', viewFilesHandler);
 app.use('/files', uploadFilesHandler);
+app.use('/files', rawFilesHandler);
 app.use('/', express.static(path.join(process.cwd(), './views')));
 
 getFilesIndex().then(indexJSON => {

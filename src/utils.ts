@@ -3,8 +3,8 @@ import dev from 'consts:dev';
 import { config } from './config';
 import { FileIndex, IFileNode } from './filesIndex';
 
-export const linkFromPublicPath = (publicPath: string) =>
-    dev
+export const linkFromPublicPath = (publicPath: string, isDev = dev) =>
+    isDev
         ? `http://localhost:${global.PORT}/files/${publicPath}`
         : `https://${config.netlifySite}/${publicPath}`;
 

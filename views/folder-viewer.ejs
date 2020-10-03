@@ -1,7 +1,7 @@
 <ul class="list-group">
   <% Object.values(fileNode.children).forEach(function(file) { %>
     <li class="list-group-item">
-      <a href="/files<%- file.path + queryString %>">
+      <a href="/explorer<%- file.path + queryString %>">
         <i class="fas <%- file.isDirectory ? 'fa-folder' : 'fa-file' %>"></i>
         <span><%= file.name %></span>
       </a>

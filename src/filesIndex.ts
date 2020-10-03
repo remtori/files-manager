@@ -42,10 +42,9 @@ const filesIndexPromise: Promise<FileIndex> = (async () => {
     const indexes: NetlifyFile[] = await netlifyRequest(
         `sites/${config.netlifySite}/files`,
         { method: 'GET' }
-    );
+    ).json();
 
     indexes.forEach(file => addFileToIndex(file.path, file.sha, file.size));
-
     return indexJson;
 })();
 

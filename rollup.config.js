@@ -8,7 +8,8 @@ import path from 'path';
 
 import pkg from './package.json';
 
-const dev = process.env.ROLLUP_WATCH === 'true';
+const dev = process.env.DEV == 1;
+const isWatch = process.env.ROLLUP_WATCH === 'true';
 
 export default {
 	input: './src/index.ts',
@@ -22,7 +23,7 @@ export default {
 		consts({
 			dev: dev,
 		}),
-		dev && run({
+		isWatch && run({
 			options: {
 				env: dotenv.config({
 					path: path.join(__dirname, '.env.dev')

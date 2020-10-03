@@ -9,7 +9,7 @@ const filePatterns = {
         ogg: /^OggS/,
         wav: /^RIFF....WAVE/,
         midi: /^MThd/,
-        mp3: /^\xFF[\xFB\xF3\xF2]/,
+        mp3: /^(\xFF[\xFB\xF3\xF2]|ID3)/,
     },
     video: {
         avi: /^RIFF....AVI /,

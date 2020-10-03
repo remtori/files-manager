@@ -1,48 +1,55 @@
 import fs from 'fs-extra';
 import path from 'path';
-import fetch, { RequestInit } from 'node-fetch';
+import { pipeline } from 'stream';
+import got, { Options, Progress } from 'got';
 
 import { UploadedFileInfo } from '../UploadedFileInfo';
 import { config, tempPath } from '../config';
 import { FileIndex } from '../filesIndex';
 
-export function netlifyRequest(endpoint: string, opts: RequestInit = {}) {
-    return fetch(`https://api.netlify.com/api/v1/${endpoint}`, {
-        ...opts,
-        headers: {
-            ...opts.headers,
-            Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
-        },
-    })
-        .then((r) => r.text())
-        .then(text => {
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                console.log('Failed to parse:');
-                console.log(text);
-                console.log(e);
-            }
-        })
-        .then((res) => {
-            if (res.code && res.code != 200) {
-                console.log(`Netlify error (${res.code})`);
-                throw new Error(res.message);
-            }
+export const netlifyRequest = got.extend({
+    prefixUrl: 'https://api.netlify.com/api/v1/',
+    headers: {
+        Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
+    },
+});
 
-            return res;
-        });
-}
-
-export function putFile(deployId: string, publicPath: string, filePath: string) {
+export function putFile(deployId: string, file: UploadedFileInfo) {
+    let publicPath = file.publicPath;
     if (publicPath[0] === '/') publicPath = publicPath.slice(1);
 
-    return netlifyRequest(`deploys/${deployId}/files/${publicPath}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/octet-stream',
-        },
-        body: fs.createReadStream(path.join(tempPath, filePath)),
+    return new Promise(resolve => {
+        const putStream = got.stream.put(
+            `https://api.netlify.com/api/v1/deploys/${deployId}/files/${publicPath}`,
+            {
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    Authorization: `Bearer ${process.env.NETLIFY_TOKEN}`,
+                },
+            }
+        );
+
+        pipeline(
+            fs.createReadStream(file.filePath),
+            putStream,
+            (err) => {
+                if (err) {
+                    console.log(err);
+                    resolve();
+                }
+            }
+        );
+
+        putStream.on('uploadProgress', (progress: Progress) => {
+            console.log(`Uploading ${file.publicPath}: ${progress.transferred}/${file.size} bytes`);
+        });
+
+        putStream.on('error', (err) => {
+            console.log(err);
+            resolve();
+        });
+
+        putStream.on('end', resolve);
     });
 }
 
@@ -62,13 +69,13 @@ export async function uploadFiles(
                 files: indexJson.hashes,
             }),
         }
-    );
+    ).json() as any;
 
     uploadRequiredFiles(netlifyDeployRes.id, uploadedFiles);
 }
 
 async function uploadRequiredFiles(deployId: string, uploadedFiles: UploadedFileInfo[]) {
-    const netlifyDeploy = await netlifyRequest(`deploys/${deployId}`);
+    const netlifyDeploy = await netlifyRequest(`deploys/${deployId}`).json() as any;
     if (netlifyDeploy.state === 'ready' || netlifyDeploy.state === 'error') return;
 
     console.log('=========================================================');
@@ -84,7 +91,7 @@ async function uploadRequiredFiles(deployId: string, uploadedFiles: UploadedFile
         for (let i = 0; i < uploadedFiles.length; i++) {
             if (sha1 === uploadedFiles[i].hash) {
                 promiseQueue.push(
-                    putFile(deployId, uploadedFiles[i].publicPath, uploadedFiles[i].filePath)
+                    putFile(deployId, uploadedFiles[i])
                 );
 
                 skip = true;
