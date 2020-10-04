@@ -2,7 +2,6 @@ import { encode as queryEncode, decode as queryDecode } from 'querystring';
 import { Request, Response, Router } from 'express';
 import { getFilesIndex } from '../filesIndex';
 import { getFileNode } from '../utils';
-import { config } from '../config';
 
 export const viewFilesHandler = Router();
 

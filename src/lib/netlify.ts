@@ -1,10 +1,9 @@
 import fs from 'fs-extra';
-import path from 'path';
 import { pipeline } from 'stream';
-import got, { Options, Progress } from 'got';
+import got, { Progress } from 'got';
 
 import { UploadedFileInfo } from '../UploadedFileInfo';
-import { config, tempPath } from '../config';
+import { config } from '../config';
 import { FileIndex } from '../filesIndex';
 
 export const netlifyRequest = got.extend({

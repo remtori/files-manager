@@ -1,6 +1,4 @@
-import fs from 'fs-extra';
 import path from 'path';
-import dev from 'consts:dev';
 import { config } from './config';
 import { netlifyRequest } from './lib/netlify';
 
