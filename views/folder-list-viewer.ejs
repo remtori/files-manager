@@ -1,0 +1,29 @@
+<div class="list-group">
+  <div class="list-group-item">
+    <div class="container">
+      <div class="row">
+        <div class="col"><b>Name</b></div>
+        <div class="col-2 d-none d-sm-block"><b>Size</b></div>
+        <div class="col-4 d-none d-lg-block"><b>Modified</b></div>
+      </div>
+    </div>
+  </div>
+  <% fileList.forEach(function(file) { %>
+    <div class="list-group-item list-group-item-action">
+      <div class="container">
+        <div class="row">
+          <div class="col">
+            <i class="fas <%- file.isDirectory ? 'fa-folder' : 'fa-file' %>"></i>
+            <a class="text-dark" href="/explorer<%- file.path + queryString %>"><%= file.name %></a>
+          </div>
+          <div class="col-2 d-none d-sm-block">
+            <span><%= file.size %></span>
+          </div>
+          <div class="col-4 d-none d-lg-block">
+            <span><%= new Date(Date.now() - Math.random() * 1e9).toLocaleString() %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+</div>

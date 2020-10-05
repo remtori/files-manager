@@ -80,7 +80,7 @@
 												<i class="fas fa-th-list" aria-hidden="true"></i>
 												<span>List</span>
 											</a>
-											<a href="<%- setQuery('display', 'tiles') %>" class="dropdown-item text-dark">
+											<a href="<%- setQuery('display', 'grid') %>" class="dropdown-item text-dark">
 												<i class="fas fa-th" aria-hidden="true"></i>
 												<span>Tiles</span>
 											</a>
@@ -153,7 +153,14 @@
 							</nav>
 						</header>
 						<main>
-							<%- fileNode.isDirectory ? include('folder-viewer') : include('file-viewer') %>
+							<%-
+								!fileNode.isDirectory
+									? include('file-viewer')
+									: config.display == 'list' ? include('folder-list-viewer')
+									: config.display == 'grid' ? include('folder-grid-viewer')
+									: config.display == 'columns' ? include('folder-columns-viewer')
+									: `<h2>Unknown display type '${config.display}'</h2>`
+							%>
 						</main>
 					</section>
 					<footer></footer>
