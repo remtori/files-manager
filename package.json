@@ -33,8 +33,7 @@
 	"scripts": {
 		"dev": "cross-env DEV=1 rollup -wc",
 		"prod": "cross-env DEV=0 rollup -wc",
-		"build": "cross-env DEV=0 rollup -c",
-		"start": "node ./dist/index.js"
+		"build": "cross-env DEV=0 rollup -c"
 	},
 	"author": "remtori <lqvu99@gmail.com>",
 	"repository": {
