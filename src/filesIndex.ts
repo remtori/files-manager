@@ -1,13 +1,6 @@
 import path from 'path';
 import { config } from './config';
-import { netlifyRequest } from './lib/netlify';
-
-interface NetlifyFile {
-    id: string;
-    path: string;
-    sha: string;
-    size: number;
-}
+import { netlifyClient } from './lib/netlify';
 
 export interface IFileNode {
     name: string;
@@ -38,11 +31,7 @@ const indexJson: FileIndex = {
 };
 
 const filesIndexPromise: Promise<FileIndex> = (async () => {
-    const indexes: NetlifyFile[] = await netlifyRequest(
-        `sites/${config.netlifySite}/files`,
-        { method: 'GET' }
-    ).json();
-
+    const indexes = await netlifyClient.listSiteFiles({ site_id: config.netlifySite });
     indexes.forEach(file => addFileToIndex(file.path, file.sha, file.size));
     return indexJson;
 })();

@@ -1,14 +1,16 @@
 import path from 'path';
+import fs from 'fs-extra';
 import { Router, Request, Response } from 'express';
 import dev from 'consts:dev';
+import deploySite from 'netlify-partial-deploy';
 
 import {
 	UploadedFile,
 	uploadFileMiddleware,
 } from '../middleware/uploadFile/uploadFileMiddleware';
-import { tempPath } from '../config';
+import { config, tempPath } from '../config';
 import { UploadedFileInfo } from '../UploadedFileInfo';
-import { uploadFiles } from '../lib/netlify';
+import { netlifyClient } from '../lib/netlify';
 import { getFilesIndex, addFileToIndex } from '../filesIndex';
 import { isAbsolute, isValidPath, linkFromPublicPath } from '../utils';
 
@@ -50,11 +52,6 @@ uploadFilesHandler.post(
 			linkFromPublicPath(file.publicPath),
 		]);
 
-		res.json({
-			ok: true,
-			links: Object.fromEntries(uploadFileEntries),
-		});
-
 		const indexJson = await getFilesIndex();
 
 		uploadedFiles.forEach((file) => {
@@ -66,7 +63,19 @@ uploadFilesHandler.post(
 			addFileToIndex(file.publicPath, file.hash, file.size);
 		});
 
-		if (!dev) await uploadFiles(indexJson, uploadedFiles);
+
+		await deploySite(netlifyClient, config.netlifySite, indexJson.hashes, publicPath => {
+			const file = uploadedFiles.find(file => file.publicPath === publicPath);
+			if (file === undefined)
+				throw new Error(`Required file '${publicPath}' is not found in uploadedFiles\n${JSON.stringify(uploadedFiles, null, 2)}`);
+
+			return fs.createReadStream(file.filePath);
+		}, { statusCb: status => console.log(status.msg) });
+		
+		res.json({
+			ok: true,
+			links: Object.fromEntries(uploadFileEntries),
+		});
 	}
 );
 
@@ -109,17 +118,23 @@ uploadFilesHandler.put(
 			});
 		}
 
-		res.json({
-			ok: true,
-			link: linkFromPublicPath(publicPath.slice(1)),
-		});
-
 		const uploadedFile: UploadedFileInfo = {
 			...file,
 			publicPath: publicPath,
 		};
 
 		addFileToIndex(uploadedFile.publicPath, uploadedFile.hash, uploadedFile.size);
-		if (!dev) await uploadFiles(indexJson, [uploadedFile]);
+
+		await deploySite(netlifyClient, config.netlifySite, indexJson.hashes, publicPath => {
+			if (uploadedFile.publicPath !== publicPath)
+				throw new Error(`Required file '${publicPath}' not found, available ${JSON.stringify(uploadedFile)}`);
+
+			return fs.createReadStream(uploadedFile.filePath);
+		}, { statusCb: status => console.log(status.msg) });
+		
+		res.json({
+			ok: true,
+			link: linkFromPublicPath(publicPath.slice(1)),
+		});
 	}
 );
