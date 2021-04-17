@@ -8,7 +8,7 @@
 		"prod": "cross-env DEV=0 rollup -wc",
 		"build": "cross-env DEV=0 rollup -c",
 		"build:docker": "npm run build && docker build -t files-remtori .",
-		"docker": "docker run -p 4999:4999 --env-file .env files-remtori"
+		"docker": "docker run -dp 4999:4999 --env-file .env files-remtori"
 	},
 	"dependencies": {
 		"busboy": "^0.3.1",

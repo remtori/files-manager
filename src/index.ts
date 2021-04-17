@@ -4,7 +4,6 @@ import cors from 'cors';
 import path from 'path';
 import dev from 'consts:dev';
 
-import { auth } from './middleware/auth';
 import { getFilesIndex } from './filesIndex';
 import { config } from './config';
 import { uploadFilesHandler } from './handler/uploadFilesHandler';
@@ -25,7 +24,6 @@ app.use(morgan('short'));
 if (!dev) app.use(onlyHttps);
 app.set('view engine', 'ejs');
 
-app.use(auth());
 app.use('/explorer', viewFilesHandler);
 app.use('/files', uploadFilesHandler);
 app.use('/files', rawFilesHandler);
