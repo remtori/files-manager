@@ -16,11 +16,7 @@ export interface FileStreamHandler {
 	};
 }
 
-export const fileStreamHandler: FileStreamHandler = (
-	uploadFolder,
-	filename,
-	opts
-) => {
+export const fileStreamHandler: FileStreamHandler = (uploadFolder, filename, opts) => {
 	let fileSize = 0;
 	const hash = createHash('sha1');
 
@@ -31,9 +27,7 @@ export const fileStreamHandler: FileStreamHandler = (
 	return {
 		dataHandler(data) {
 			if (!writeStream) {
-				const { type, ext } = fileInfoFromContentHead(
-					data.toString('binary', 0, 16)
-				);
+				const { type, ext } = fileInfoFromContentHead(data.toString('binary', 0, 16));
 
 				let relPath = generateID();
 				if (opts.useFileExtension) {
@@ -51,7 +45,7 @@ export const fileStreamHandler: FileStreamHandler = (
 				writeStream = fs.createWriteStream(filePath);
 				writePromise = new Promise((resolve, reject) => {
 					writeStream!.on('finish', () => resolve());
-					writeStream!.on('error', (err) => {
+					writeStream!.on('error', err => {
 						console.log('Error write file: ' + err);
 						reject(err);
 					});
@@ -68,9 +62,7 @@ export const fileStreamHandler: FileStreamHandler = (
 		cleanup() {
 			writeStream && writeStream.end();
 			if (filePath)
-				fs.remove(filePath).catch((err) =>
-					console.log(`Clean up temp file ${filePath} failed: ${err}`)
-				);
+				fs.remove(filePath).catch(err => console.log(`Clean up temp file ${filePath} failed: ${err}`));
 		},
 		getPendingPromise: () => writePromise || Promise.resolve(),
 	};

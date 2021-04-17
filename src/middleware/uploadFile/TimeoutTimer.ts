@@ -1,23 +1,23 @@
 export class TimeoutTimer {
-    timeout: number;
-    callback: () => any;
-    timeoutHandler?: NodeJS.Timeout;
+	timeout: number;
+	callback: () => any;
+	timeoutHandler?: NodeJS.Timeout;
 
-    constructor(timeout: number, cb: () => any) {
-        this.timeout = timeout;
-        this.callback = cb;
-    }
+	constructor(timeout: number, cb: () => any) {
+		this.timeout = timeout;
+		this.callback = cb;
+	}
 
-    start() {
-        this.timeoutHandler = setTimeout(this.callback, this.timeout);
-    }
+	start() {
+		this.timeoutHandler = setTimeout(this.callback, this.timeout);
+	}
 
-    stop() {
-        clearTimeout(this.timeoutHandler as any);
-    }
+	stop() {
+		clearTimeout(this.timeoutHandler as any);
+	}
 
-    reset() {
-        this.stop();
-        this.start();
-    }
+	reset() {
+		this.stop();
+		this.start();
+	}
 }

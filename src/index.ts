@@ -17,9 +17,7 @@ const app = express();
 
 app.use(
 	cors({
-		origin: ([/https?:\/\/localhost:?\d+/i] as (string | RegExp)[]).concat(
-			config.origin
-		),
+		origin: ([/https?:\/\/localhost:?\d+/i] as (string | RegExp)[]).concat(config.origin),
 	})
 );
 

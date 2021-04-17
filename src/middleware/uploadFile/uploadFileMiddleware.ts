@@ -60,10 +60,7 @@ export const uploadFileMiddleware = (opts: Partial<Options>) => (
 
 	const busboy = new Busboy({ headers: req.headers });
 
-	busboy.on(
-		'field',
-		(field, value) => (req.body = applyField(req.body, field, value))
-	);
+	busboy.on('field', (field, value) => (req.body = applyField(req.body, field, value)));
 
 	busboy.on('file', (field, file, filename, encoding, mime) => {
 		const {
@@ -81,22 +78,16 @@ export const uploadFileMiddleware = (opts: Partial<Options>) => (
 
 			// file.destroy() is an internal API
 			// available only for NodeJS File Stream (not all ReadableStream interface)
-			(file as any).destroy(
-				new Error(
-					`Upload timeout ${field}->${filename}, bytes:${getFileSize()}`
-				)
-			);
+			(file as any).destroy(new Error(`Upload timeout ${field}->${filename}, bytes:${getFileSize()}`));
 		});
 
 		file.on('limit', () => {
-			console.log(
-				`Size limit reached for ${field}->${filename}, bytes:${getFileSize()}`
-			);
+			console.log(`Size limit reached for ${field}->${filename}, bytes:${getFileSize()}`);
 
 			uploadTimer.stop();
 		});
 
-		file.on('data', (data) => {
+		file.on('data', data => {
 			uploadTimer.reset();
 			dataHandler(data);
 		});
@@ -141,7 +132,7 @@ export const uploadFileMiddleware = (opts: Partial<Options>) => (
 				delete req[waitFlushProperty];
 				next();
 			})
-			.catch((err) => {
+			.catch(err => {
 				delete req[waitFlushProperty];
 				console.log(`Error while waiting files flush: ${err}`);
 				next(err);
